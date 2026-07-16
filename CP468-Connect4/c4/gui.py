@@ -1,0 +1,184 @@
+import tkinter as tk
+from typing import Optional
+
+from c4.agents import MinimaxAgent, RandomAgent, RuleBasedAgent
+from c4.board import Board, PLAYER1, PLAYER2, ROWS, COLS
+
+
+class Connect4GUI:
+    def __init__(self, root: tk.Tk, player1_mode: str = "human", player2_mode: str = "human", ai_agent1=None, ai_agent2=None):
+        self.root = root
+        self.root.title("Connect 4")
+        self.board = Board()
+        self.player1_mode = player1_mode
+        self.player2_mode = player2_mode
+        self.ai_agent1 = ai_agent1 or self._build_agent(player1_mode, PLAYER1)
+        self.ai_agent2 = ai_agent2 or self._build_agent(player2_mode, PLAYER2)
+        self.current_player = PLAYER1
+        self.cell_size = 80
+        self.canvas = tk.Canvas(root, width=COLS * self.cell_size, height=(ROWS + 1) * self.cell_size, bg="#1e3a8a")
+        self.canvas.pack()
+        self.canvas.bind("<Button-1>", self.on_click)
+        self.draw_board()
+        self.status_var = tk.StringVar(value="Your turn (red)")
+        self.status_label = tk.Label(root, textvariable=self.status_var, font=("Arial", 12, "bold"))
+        self.status_label.pack(pady=6)
+        self.restart_button = tk.Button(root, text="Restart", command=self.reset_game, font=("Arial", 10))
+        self.restart_button.pack(pady=4)
+        self.root.after(100, self.after_start)
+
+    def _build_agent(self, mode: str, player: int):
+        if mode == "human":
+            return None
+        if mode == "random":
+            return RandomAgent(player, seed=42)
+        if mode == "rule":
+            return RuleBasedAgent(player, seed=42)
+        if mode == "minimax":
+            return MinimaxAgent(player, depth=4, seed=42)
+        # Unknown/unset mode: fall back to a working AI instead of
+        # silently doing nothing (previously caused the AI player to
+        # never move when an unrecognized mode string slipped through).
+        return RandomAgent(player, seed=42)
+
+    def after_start(self):
+        if self.current_player == PLAYER1 and self.player1_mode != "human":
+            self.play_ai_turn()
+        elif self.current_player == PLAYER2 and self.player2_mode != "human":
+            self.play_ai_turn()
+
+    def draw_board(self):
+        self.canvas.delete("all")
+        for r in range(ROWS):
+            for c in range(COLS):
+                x1 = c * self.cell_size
+                y1 = (r + 1) * self.cell_size
+                x2 = x1 + self.cell_size
+                y2 = y1 + self.cell_size
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill="#dbeafe", outline="black", width=2)
+                value = self.board.grid[r][c]
+                if value == PLAYER1:
+                    self.canvas.create_oval(x1 + 8, y1 + 8, x2 - 8, y2 - 8, fill="#ef4444")
+                elif value == PLAYER2:
+                    self.canvas.create_oval(x1 + 8, y1 + 8, x2 - 8, y2 - 8, fill="#facc15")
+
+        for c in range(COLS):
+            self.canvas.create_text(c * self.cell_size + self.cell_size // 2, self.cell_size // 2, text=str(c + 1), fill="white", font=("Arial", 12, "bold"))
+
+    def on_click(self, event):
+        if self.current_player != PLAYER1 or self.player1_mode != "human":
+            return
+        col = column_from_x(event.x, self.cell_size, COLS)
+        if col is None:
+            return
+        self.play_human_move(col)
+
+    def play_human_move(self, col: int):
+        if self.current_player != PLAYER1 or col not in self.board.legal_moves():
+            return
+        self.board.apply_move(col, PLAYER1)
+        self.draw_board()
+        if self.board.winner() == PLAYER1:
+            self.status_var.set("You win!")
+            self.current_player = None
+            return
+        if self.board.is_full():
+            self.status_var.set("Draw")
+            self.current_player = None
+            return
+        self.current_player = PLAYER2
+        self.status_var.set("AI turn")
+        self.root.after(300, self.play_ai_turn)
+
+    def play_ai_turn(self):
+        if self.current_player == PLAYER1 and self.player1_mode == "human":
+            return
+        if self.current_player == PLAYER2 and self.player2_mode == "human":
+            return
+        if not self.board.legal_moves():
+            self.status_var.set("Draw")
+            return
+
+        agent = self.ai_agent1 if self.current_player == PLAYER1 else self.ai_agent2
+        if agent is None:
+            self.current_player = PLAYER1 if self.current_player == PLAYER2 else PLAYER2
+            return
+
+        move = agent.select_move(self.board, self.current_player)
+        self.board.apply_move(move, self.current_player)
+        self.draw_board()
+        if self.board.winner() == self.current_player:
+            winner_name = "Player 1" if self.current_player == PLAYER1 else "Player 2"
+            self.status_var.set(f"{winner_name} wins!")
+            self.current_player = None
+            return
+        if self.board.is_full():
+            self.status_var.set("Draw")
+            self.current_player = None
+            return
+        self.current_player = PLAYER1 if self.current_player == PLAYER2 else PLAYER2
+        if self.current_player == PLAYER1 and self.player1_mode == "human":
+            self.status_var.set("Your turn (red)")
+        elif self.current_player == PLAYER2 and self.player2_mode == "human":
+            self.status_var.set("Your turn (yellow)")
+        else:
+            self.root.after(300, self.play_ai_turn)
+
+    def reset_game(self):
+        self.board = Board()
+        self.current_player = PLAYER1
+        self.draw_board()
+        self.status_var.set("Your turn (red)")
+        self.root.after(100, self.after_start)
+
+
+def column_from_x(x: int, cell_size: int, cols: int) -> Optional[int]:
+    if x < 0 or x >= cols * cell_size:
+        return None
+    return min(cols - 1, x // cell_size)
+
+
+def launch_gui():
+    # The mode-selection dialog is created as its own real Tk() window
+    # rather than a Toplevel that is transient() on a hidden/withdrawn
+    # root. (Previously: root = tk.Tk(); root.withdraw(); dialog =
+    # tk.Toplevel(root); dialog.transient(root) — pairing transient()
+    # with a withdrawn master causes the dialog to get stuck at 1x1
+    # pixels and never actually become visible, which is why no window
+    # appeared at all when running the game.)
+    dialog = tk.Tk()
+    dialog.title("Select game mode")
+    # No fixed geometry() here: pinning the window to "320x220" was
+    # too small for two labels + 8 radio buttons + a button, which
+    # silently clipped the bottom of the dialog (including the whole
+    # "Start Game" button) so it could never be clicked. Leaving the
+    # size unset lets Tk auto-size the window to fit its content.
+
+    tk.Label(dialog, text="Choose player 1 mode", font=("Arial", 11, "bold")).pack(pady=(10, 4))
+    player1_var = tk.StringVar(value="human")
+    tk.Radiobutton(dialog, text="Human", variable=player1_var, value="human").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Random AI", variable=player1_var, value="random").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Rule-Based AI", variable=player1_var, value="rule").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Minimax AI", variable=player1_var, value="minimax").pack(anchor="w", padx=20)
+
+    tk.Label(dialog, text="Choose player 2 mode", font=("Arial", 11, "bold")).pack(pady=(10, 4))
+    player2_var = tk.StringVar(value="random")
+    tk.Radiobutton(dialog, text="Human", variable=player2_var, value="human").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Random AI", variable=player2_var, value="random").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Rule-Based AI", variable=player2_var, value="rule").pack(anchor="w", padx=20)
+    tk.Radiobutton(dialog, text="Minimax AI", variable=player2_var, value="minimax").pack(anchor="w", padx=20)
+
+    def start_game():
+        p1_mode = player1_var.get()
+        p2_mode = player2_var.get()
+        dialog.destroy()
+        game_root = tk.Tk()
+        Connect4GUI(game_root, p1_mode, p2_mode)
+        game_root.mainloop()
+
+    tk.Button(dialog, text="Start Game", command=start_game, font=("Arial", 10, "bold")).pack(pady=12)
+    dialog.mainloop()
+
+
+if __name__ == "__main__":
+    launch_gui()
