@@ -20,7 +20,7 @@ class Connect4GUI:
         self.canvas.pack()
         self.canvas.bind("<Button-1>", self.on_click)
         self.draw_board()
-        self.status_var = tk.StringVar(value="Your turn (red)")
+        self.status_var = tk.StringVar()
         self.status_label = tk.Label(root, textvariable=self.status_var, font=("Arial", 12, "bold"))
         self.status_label.pack(pady=6)
         self.restart_button = tk.Button(root, text="Restart", command=self.reset_game, font=("Arial", 10))
@@ -42,10 +42,29 @@ class Connect4GUI:
         return RandomAgent(player, seed=42)
 
     def after_start(self):
+        self._update_status_for_current_player()
         if self.current_player == PLAYER1 and self.player1_mode != "human":
             self.play_ai_turn()
         elif self.current_player == PLAYER2 and self.player2_mode != "human":
             self.play_ai_turn()
+
+    def _is_human_turn(self) -> bool:
+        if self.current_player == PLAYER1:
+            return self.player1_mode == "human"
+        if self.current_player == PLAYER2:
+            return self.player2_mode == "human"
+        return False
+
+    def _get_status_text(self) -> str:
+        if self.current_player is None:
+            return "Game over"
+        player_color = "red" if self.current_player == PLAYER1 else "yellow"
+        if self._is_human_turn():
+            return f"Your turn ({player_color})"
+        return f"AI turn ({player_color})"
+
+    def _update_status_for_current_player(self):
+        self.status_var.set(self._get_status_text())
 
     def draw_board(self):
         self.canvas.delete("all")
@@ -66,7 +85,7 @@ class Connect4GUI:
             self.canvas.create_text(c * self.cell_size + self.cell_size // 2, self.cell_size // 2, text=str(c + 1), fill="white", font=("Arial", 12, "bold"))
 
     def on_click(self, event):
-        if self.current_player != PLAYER1 or self.player1_mode != "human":
+        if not self._is_human_turn():
             return
         col = column_from_x(event.x, self.cell_size, COLS)
         if col is None:
@@ -74,23 +93,27 @@ class Connect4GUI:
         self.play_human_move(col)
 
     def play_human_move(self, col: int):
-        if self.current_player != PLAYER1 or col not in self.board.legal_moves():
+        if self.current_player is None or col not in self.board.legal_moves():
             return
-        self.board.apply_move(col, PLAYER1)
+        self.board.apply_move(col, self.current_player)
         self.draw_board()
-        if self.board.winner() == PLAYER1:
-            self.status_var.set("You win!")
+        if self.board.winner() == self.current_player:
+            winner_name = "Player 1" if self.current_player == PLAYER1 else "Player 2"
+            self.status_var.set(f"{winner_name} wins!")
             self.current_player = None
             return
         if self.board.is_full():
             self.status_var.set("Draw")
             self.current_player = None
             return
-        self.current_player = PLAYER2
-        self.status_var.set("AI turn")
-        self.root.after(300, self.play_ai_turn)
+        self.current_player = PLAYER1 if self.current_player == PLAYER2 else PLAYER2
+        self._update_status_for_current_player()
+        if not self._is_human_turn():
+            self.root.after(300, self.play_ai_turn)
 
     def play_ai_turn(self):
+        if self.current_player is None:
+            return
         if self.current_player == PLAYER1 and self.player1_mode == "human":
             return
         if self.current_player == PLAYER2 and self.player2_mode == "human":
@@ -102,6 +125,7 @@ class Connect4GUI:
         agent = self.ai_agent1 if self.current_player == PLAYER1 else self.ai_agent2
         if agent is None:
             self.current_player = PLAYER1 if self.current_player == PLAYER2 else PLAYER2
+            self._update_status_for_current_player()
             return
 
         move = agent.select_move(self.board, self.current_player)
@@ -117,18 +141,15 @@ class Connect4GUI:
             self.current_player = None
             return
         self.current_player = PLAYER1 if self.current_player == PLAYER2 else PLAYER2
-        if self.current_player == PLAYER1 and self.player1_mode == "human":
-            self.status_var.set("Your turn (red)")
-        elif self.current_player == PLAYER2 and self.player2_mode == "human":
-            self.status_var.set("Your turn (yellow)")
-        else:
+        self._update_status_for_current_player()
+        if not self._is_human_turn():
             self.root.after(300, self.play_ai_turn)
 
     def reset_game(self):
         self.board = Board()
         self.current_player = PLAYER1
         self.draw_board()
-        self.status_var.set("Your turn (red)")
+        self._update_status_for_current_player()
         self.root.after(100, self.after_start)
 
 
