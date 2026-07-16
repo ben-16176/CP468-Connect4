@@ -47,8 +47,7 @@ class RuleBasedAgent(Agent):
         if blocks:
             return self.rng.choice(blocks)
 
-        # Rule 4: extend own longest line / create threats, scored via the
-        # windowed heuristic (this already includes a center-column weight).
+        # Pick the move that gives the best board score.
         best_score = None
         best_moves = []
         for move in moves:
@@ -61,10 +60,7 @@ class RuleBasedAgent(Agent):
             elif score == best_score:
                 best_moves.append(move)
 
-        # Rule 3: prefer central columns, applied as a tie-breaker among the
-        # moves that are equally good under rule 4. (Using it as a hard
-        # filter before rule 4 would make rule 4 unreachable, since some
-        # move is always closest to center.)
+        # Break ties by choosing the move closest to the center.
         center = len(board.grid[0]) // 2
         min_dist = min(abs(m - center) for m in best_moves)
         central_best = [m for m in best_moves if abs(m - center) == min_dist]

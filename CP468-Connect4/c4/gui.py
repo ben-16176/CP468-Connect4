@@ -25,6 +25,8 @@ class Connect4GUI:
         self.status_label.pack(pady=6)
         self.restart_button = tk.Button(root, text="Restart", command=self.reset_game, font=("Arial", 10))
         self.restart_button.pack(pady=4)
+        self.back_button = tk.Button(root, text="Back to Menu", command=self.back_to_menu, font=("Arial", 10))
+        self.back_button.pack(pady=4)
         self.root.after(100, self.after_start)
 
     def _build_agent(self, mode: str, player: int):
@@ -36,9 +38,7 @@ class Connect4GUI:
             return RuleBasedAgent(player, seed=42)
         if mode == "minimax":
             return MinimaxAgent(player, depth=4, seed=42)
-        # Unknown/unset mode: fall back to a working AI instead of
-        # silently doing nothing (previously caused the AI player to
-        # never move when an unrecognized mode string slipped through).
+        # Fall back to a basic AI if the mode is unknown.
         return RandomAgent(player, seed=42)
 
     def after_start(self):
@@ -80,9 +80,6 @@ class Connect4GUI:
                     self.canvas.create_oval(x1 + 8, y1 + 8, x2 - 8, y2 - 8, fill="#ef4444")
                 elif value == PLAYER2:
                     self.canvas.create_oval(x1 + 8, y1 + 8, x2 - 8, y2 - 8, fill="#facc15")
-
-        for c in range(COLS):
-            self.canvas.create_text(c * self.cell_size + self.cell_size // 2, self.cell_size // 2, text=str(c + 1), fill="white", font=("Arial", 12, "bold"))
 
     def on_click(self, event):
         if not self._is_human_turn():
@@ -152,6 +149,11 @@ class Connect4GUI:
         self._update_status_for_current_player()
         self.root.after(100, self.after_start)
 
+    def back_to_menu(self):
+        if self.root is not None:
+            self.root.destroy()
+        launch_gui()
+
 
 def column_from_x(x: int, cell_size: int, cols: int) -> Optional[int]:
     if x < 0 or x >= cols * cell_size:
@@ -160,20 +162,10 @@ def column_from_x(x: int, cell_size: int, cols: int) -> Optional[int]:
 
 
 def launch_gui():
-    # The mode-selection dialog is created as its own real Tk() window
-    # rather than a Toplevel that is transient() on a hidden/withdrawn
-    # root. (Previously: root = tk.Tk(); root.withdraw(); dialog =
-    # tk.Toplevel(root); dialog.transient(root) — pairing transient()
-    # with a withdrawn master causes the dialog to get stuck at 1x1
-    # pixels and never actually become visible, which is why no window
-    # appeared at all when running the game.)
+    # Open the setup window as a normal Tk window.
     dialog = tk.Tk()
     dialog.title("Select game mode")
-    # No fixed geometry() here: pinning the window to "320x220" was
-    # too small for two labels + 8 radio buttons + a button, which
-    # silently clipped the bottom of the dialog (including the whole
-    # "Start Game" button) so it could never be clicked. Leaving the
-    # size unset lets Tk auto-size the window to fit its content.
+    # Leave the size automatic so all buttons stay visible.
 
     tk.Label(dialog, text="Choose player 1 mode", font=("Arial", 11, "bold")).pack(pady=(10, 4))
     player1_var = tk.StringVar(value="human")

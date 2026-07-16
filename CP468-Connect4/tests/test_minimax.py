@@ -4,7 +4,7 @@ import random
 
 def test_minimax_finds_immediate_win():
     b = Board()
-    # set up a position where player1 can win by playing col 3
+    # Set up a position where Player 1 can win by playing column 3.
     b.apply_move(0, PLAYER1)
     b.apply_move(0, PLAYER2)
     b.apply_move(1, PLAYER1)

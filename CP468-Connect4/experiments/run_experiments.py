@@ -15,23 +15,24 @@ from c4.game import Game
 
 def run_pairing(agent_a_cls, agent_b_cls, games=30, depth=4, seed=0):
     rng = random.Random(seed)
-    # "times" collects one entry per individual move (not per game), so the
-    # mean below is a genuine average decision time per move, per agent.
+    # Keep track of wins, draws, and move timings for both agents.
     results = {"A": 0, "B": 0, "draw": 0, "times": {"A": [], "B": []}, "details": []}
     for i in range(games):
+        # Alternate who plays first so the results are more balanced.
         if i % 2 == 0:
             a = agent_a_cls(1, seed=rng.randint(0, 10**9)) if agent_a_cls is not None else None
             b = agent_b_cls(2, seed=rng.randint(0, 10**9)) if agent_b_cls is not None else None
             game = Game(a, b)
-            start = 1  # A is PLAYER1 (moves first) this game
+            start = 1  # A is the first player in this game
         else:
             a = agent_a_cls(2, seed=rng.randint(0, 10**9)) if agent_a_cls is not None else None
             b = agent_b_cls(1, seed=rng.randint(0, 10**9)) if agent_b_cls is not None else None
             game = Game(b, a)
-            start = 2  # B is PLAYER1 (moves first) this game
+            start = 2  # B is the first player in this game
 
         winner, num_moves = game.play()
 
+        # Store the timing data for the correct side of the matchup.
         if start == 1:
             a_times = game.move_times[PLAYER1]
             b_times = game.move_times[PLAYER2]
@@ -61,6 +62,7 @@ def run_pairing(agent_a_cls, agent_b_cls, games=30, depth=4, seed=0):
                     outcome = "A"
         results["details"].append((i + 1, outcome, num_moves))
 
+    # Average the recorded move times for each agent.
     avg_a = mean(results["times"]["A"]) if results["times"]["A"] else 0
     avg_b = mean(results["times"]["B"]) if results["times"]["B"] else 0
     return {
@@ -80,6 +82,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
+
+    # Run a few example matchups and print the results.
     print("Random vs Rule-Based")
     print(run_pairing(RandomAgent, RuleBasedAgent, games=30, seed=args.seed))
     print("Rule-Based vs Minimax")

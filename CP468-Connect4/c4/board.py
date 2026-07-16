@@ -9,6 +9,7 @@ PLAYER2 = 2
 
 class Board:
     def __init__(self):
+        # Create an empty board with the standard Connect 4 size.
         self.grid = [[EMPTY for _ in range(COLS)] for _ in range(ROWS)]
         self.last_move: Optional[Tuple[int, int]] = None
 
@@ -22,6 +23,7 @@ class Board:
         return [c for c in range(COLS) if self.grid[0][c] == EMPTY]
 
     def apply_move(self, col: int, player: int) -> int:
+        # Reject moves that are out of range or already full.
         if col not in range(COLS) or self.grid[0][col] != EMPTY:
             raise ValueError("Illegal move")
         for r in range(ROWS - 1, -1, -1):
@@ -35,6 +37,7 @@ class Board:
         return all(self.grid[0][c] != EMPTY for c in range(COLS))
 
     def winner(self) -> Optional[int]:
+        # Check every direction for a winning line of four.
         for r in range(ROWS):
             for c in range(COLS):
                 p = self.grid[r][c]
