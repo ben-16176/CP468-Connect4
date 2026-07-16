@@ -11,7 +11,7 @@ def test_random_agent_returns_legal():
 
 def test_rule_block_immediate_win():
     b = Board()
-    # opponent has three in a row at bottom columns 0,1,2
+    # The opponent has three pieces in a row at the bottom.
     b.apply_move(0, PLAYER2)
     b.apply_move(1, PLAYER2)
     b.apply_move(2, PLAYER2)

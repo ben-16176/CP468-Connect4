@@ -8,6 +8,7 @@ from c4.game import Game
 
 
 def main():
+    # Show the available demo options to the user.
     print("\n=== Connect 4 Agent Demo ===\n")
     print("1. Random vs Rule-Based (5 games) - show first game")
     print("2. Rule-Based vs Minimax (5 games) - show first game")
@@ -45,11 +46,13 @@ def main():
 
 
 def run_match(agent_a_cls, agent_b_cls, games, name_a, name_b, show_first=False):
+    # Run a set of games and report the results for the matchup.
     print(f"\n=== {name_a} vs {name_b} ({games} games) ===\n")
     wins_a, wins_b, draws = 0, 0, 0
 
     for i in range(games):
         verbose = show_first and i == 0
+        # Alternate who is Player 1 so both sides get a fair share of turns.
         
         player1_cls = agent_a_cls if i % 2 == 0 else agent_b_cls
         player2_cls = agent_b_cls if i % 2 == 0 else agent_a_cls
@@ -95,6 +98,7 @@ def run_match(agent_a_cls, agent_b_cls, games, name_a, name_b, show_first=False)
 
 
 def run_full_experiments():
+    # Run the full experiment set for each matchup.
     print("\n=== Running Full Experiments (30 games each) ===\n")
 
     print("Random vs Rule-Based:")
@@ -108,7 +112,7 @@ def run_full_experiments():
 
 
 def watch_game(agent_a_cls, agent_b_cls, name_a, name_b):
-    """Play and display a single game with full board state."""
+    """Play one game and show the board after every move."""
     print(f"\n=== {name_a} (Player 1) vs {name_b} (Player 2) ===\n")
     
     a = agent_a_cls(PLAYER1, seed=42)

@@ -11,12 +11,12 @@ class Game:
         self.agents = {PLAYER1: agent1, PLAYER2: agent2}
         self.current = PLAYER1
         self.verbose = verbose
-        # Per-player list of individual move decision times (seconds),
-        # one entry per select_move() call made by that player.
+        # Keep timing data for each player separately.
         self.move_times: Dict[int, List[float]] = {PLAYER1: [], PLAYER2: []}
 
     def play(self, max_moves: int = 1000) -> Tuple[int, int]:
         moves = 0
+        # Keep playing until the game ends or the move limit is reached.
         while not self.board.is_terminal() and moves < max_moves:
             agent = self.agents[self.current]
             t0 = time.perf_counter()

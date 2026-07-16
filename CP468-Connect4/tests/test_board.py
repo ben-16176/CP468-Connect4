@@ -11,7 +11,7 @@ def test_legal_moves_and_gravity():
 
 def test_win_horizontal():
     b = Board()
-    # place four in bottom row columns 0..3
+    # Place four pieces across the bottom row.
     for c in range(4):
         b.apply_move(c, PLAYER1)
     assert b.winner() == PLAYER1
