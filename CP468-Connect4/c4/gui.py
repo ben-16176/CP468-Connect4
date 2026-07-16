@@ -68,22 +68,20 @@ class Connect4GUI:
 
     def draw_board(self):
         self.canvas.delete("all")
-        self.canvas.create_rectangle(
-            0,
-            0,
-            COLS * self.cell_size,
-            (ROWS + 1) * self.cell_size,
-            outline="black",
-            width=3,
-            fill=""
-        )
         for r in range(ROWS):
             for c in range(COLS):
                 x1 = c * self.cell_size
                 y1 = (r + 1) * self.cell_size
                 x2 = x1 + self.cell_size
                 y2 = y1 + self.cell_size
-                self.canvas.create_rectangle(x1, y1, x2, y2, fill="#dbeafe", outline="black", width=2)
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill="#dbeafe", outline="")
+
+                if r > 0:
+                    self.canvas.create_line(x1, y1, x2, y1, fill="black", width=2)
+                self.canvas.create_line(x1, y2, x2, y2, fill="black", width=2)
+                self.canvas.create_line(x1, y1, x1, y2, fill="black", width=2)
+                self.canvas.create_line(x2, y1, x2, y2, fill="black", width=2)
+
                 value = self.board.grid[r][c]
                 if value == PLAYER1:
                     self.canvas.create_oval(x1 + 8, y1 + 8, x2 - 8, y2 - 8, fill="#ef4444")
