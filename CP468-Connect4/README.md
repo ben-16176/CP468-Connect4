@@ -23,29 +23,12 @@ pip install -r requirements.txt
 python play_game.py
 ```
 
-### Option 2: PySimpleGUI (alternative if Tkinter has display issues)
+### Option 2: Interactive Text-based Demo
 ```powershell
-.\.venv\bin\python.exe play_game_psgui.py
-```
-
-### Option 3: Interactive Text-based Demo
-```powershell
-.\.venv\bin\python.exe demo.py
-```
-
-This launches a menu where you can choose to run different agent matchups and watch games play out move-by-move.
-
-## Run Tests
-```powershell
-.\.venv\bin\python.exe -m pytest -q
+python demo.py
 ```
 
 ## Run Experiments
 ```powershell
-.\.venv\bin\python.exe experiments/run_experiments.py --seed 42
+python experiments/run_experiments.py --seed 42
 ```
-
-## Notes
-- Agents use a seedable random.Random instance for reproducibility.
-- Minimax uses fixed depth 4 by default in experiments.
-- The game window requires a display; it will not work in remote/headless environments.

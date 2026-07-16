@@ -95,7 +95,9 @@ class MinimaxAgent(Agent):
             return 100000 + depth
         if winner is not None:
             return -100000 - depth
-        if depth == 0 or board.is_full():
+        if board.is_full() and winner is None:
+            return 0
+        if depth == 0:
             return evaluate(board, root_player)
 
         next_player = PLAYER1 if current_player == PLAYER2 else PLAYER2

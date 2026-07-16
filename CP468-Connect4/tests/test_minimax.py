@@ -14,3 +14,21 @@ def test_minimax_finds_immediate_win():
     agent = MinimaxAgent(PLAYER1, depth=2, rng=rng)
     move = agent.select_move(b)
     assert move == 3
+
+
+def test_minimax_draw_board_scores_zero():
+    b = Board()
+    b.grid = [
+        [1, 2, 1, 1, 2, 2, 2],
+        [2, 1, 2, 2, 1, 1, 1],
+        [1, 2, 1, 1, 2, 2, 2],
+        [2, 1, 2, 2, 1, 1, 1],
+        [1, 2, 1, 1, 2, 2, 2],
+        [2, 1, 2, 2, 1, 1, 1],
+    ]
+    rng = random.Random(0)
+    agent = MinimaxAgent(PLAYER1, depth=4, rng=rng)
+
+    assert b.is_full()
+    assert b.winner() is None
+    assert agent._minimax(b, 0, True, PLAYER1, PLAYER2) == 0
