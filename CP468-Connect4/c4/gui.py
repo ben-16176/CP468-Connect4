@@ -21,11 +21,11 @@ class Connect4GUI:
         self.canvas.bind("<Button-1>", self.on_click)
         self.draw_board()
         self.status_var = tk.StringVar()
-        self.status_label = tk.Label(root, textvariable=self.status_var, font=("Arial", 12, "bold"))
+        self.status_label = tk.Label(root, textvariable=self.status_var, font=("Arial", 16, "bold"))
         self.status_label.pack(pady=6)
-        self.restart_button = tk.Button(root, text="Restart", command=self.reset_game, font=("Arial", 10))
+        self.restart_button = tk.Button(root, text="Restart", command=self.reset_game, font=("Arial", 14))
         self.restart_button.pack(pady=4)
-        self.back_button = tk.Button(root, text="Back to Menu", command=self.back_to_menu, font=("Arial", 10))
+        self.back_button = tk.Button(root, text="Back to Menu", command=self.back_to_menu, font=("Arial", 14))
         self.back_button.pack(pady=4)
         self.root.after(100, self.after_start)
 
@@ -68,6 +68,15 @@ class Connect4GUI:
 
     def draw_board(self):
         self.canvas.delete("all")
+        self.canvas.create_rectangle(
+            0,
+            0,
+            COLS * self.cell_size,
+            (ROWS + 1) * self.cell_size,
+            outline="black",
+            width=3,
+            fill=""
+        )
         for r in range(ROWS):
             for c in range(COLS):
                 x1 = c * self.cell_size
@@ -167,14 +176,14 @@ def launch_gui():
     dialog.title("Select game mode")
     # Leave the size automatic so all buttons stay visible.
 
-    tk.Label(dialog, text="Choose player 1 mode", font=("Arial", 11, "bold")).pack(pady=(10, 4))
+    tk.Label(dialog, text="Choose player 1 mode", font=("Arial", 15, "bold")).pack(pady=(10, 4))
     player1_var = tk.StringVar(value="human")
     tk.Radiobutton(dialog, text="Human", variable=player1_var, value="human").pack(anchor="w", padx=20)
     tk.Radiobutton(dialog, text="Random AI", variable=player1_var, value="random").pack(anchor="w", padx=20)
     tk.Radiobutton(dialog, text="Rule-Based AI", variable=player1_var, value="rule").pack(anchor="w", padx=20)
     tk.Radiobutton(dialog, text="Minimax AI", variable=player1_var, value="minimax").pack(anchor="w", padx=20)
 
-    tk.Label(dialog, text="Choose player 2 mode", font=("Arial", 11, "bold")).pack(pady=(10, 4))
+    tk.Label(dialog, text="Choose player 2 mode", font=("Arial", 15, "bold")).pack(pady=(10, 4))
     player2_var = tk.StringVar(value="random")
     tk.Radiobutton(dialog, text="Human", variable=player2_var, value="human").pack(anchor="w", padx=20)
     tk.Radiobutton(dialog, text="Random AI", variable=player2_var, value="random").pack(anchor="w", padx=20)
@@ -189,7 +198,7 @@ def launch_gui():
         Connect4GUI(game_root, p1_mode, p2_mode)
         game_root.mainloop()
 
-    tk.Button(dialog, text="Start Game", command=start_game, font=("Arial", 10, "bold")).pack(pady=12)
+    tk.Button(dialog, text="Start Game", command=start_game, font=("Arial", 14, "bold")).pack(pady=12)
     dialog.mainloop()
 
 

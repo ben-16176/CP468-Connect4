@@ -1,5 +1,6 @@
 import argparse
 import os
+import platform
 import random
 import sys
 from statistics import mean
@@ -11,6 +12,16 @@ if ROOT not in sys.path:
 from c4.agents import MinimaxAgent, RandomAgent, RuleBasedAgent
 from c4.board import PLAYER1, PLAYER2
 from c4.game import Game
+
+
+def get_environment_summary():
+    return {
+        "cpu": platform.processor() or "Unknown",
+        "ram": "Unknown",
+        "os": platform.platform(),
+        "language": "Python",
+        "language_version": platform.python_version(),
+    }
 
 
 def run_pairing(agent_a_cls, agent_b_cls, games=30, depth=4, seed=0):
@@ -84,9 +95,39 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Run a few example matchups and print the results.
+    env = get_environment_summary()
+    print("Environment Specifications")
+    print(f"CPU: {env['cpu']}")
+    print(f"RAM: {env['ram']}")
+    print(f"OS: {env['os']}")
+    print(f"Language: {env['language']} {env['language_version']}")
+    print()
     print("Random vs Rule-Based")
-    print(run_pairing(RandomAgent, RuleBasedAgent, games=30, seed=args.seed))
+    result1 = run_pairing(RandomAgent, RuleBasedAgent, games=30, seed=args.seed)
+    print({
+        "wins_A": result1["wins_A"],
+        "wins_B": result1["wins_B"],
+        "draws": result1["draws"],
+        "avg_time_A_per_move": result1["avg_time_A_per_move"],
+        "avg_time_B_per_move": result1["avg_time_B_per_move"],
+    })
+
     print("Rule-Based vs Minimax")
-    print(run_pairing(RuleBasedAgent, lambda p, seed=None: MinimaxAgent(p, depth=4, seed=seed), games=30, seed=args.seed + 1))
+    result2 = run_pairing(RuleBasedAgent, lambda p, seed=None: MinimaxAgent(p, depth=4, seed=seed), games=30, seed=args.seed + 1)
+    print({
+        "wins_A": result2["wins_A"],
+        "wins_B": result2["wins_B"],
+        "draws": result2["draws"],
+        "avg_time_A_per_move": result2["avg_time_A_per_move"],
+        "avg_time_B_per_move": result2["avg_time_B_per_move"],
+    })
+
     print("Minimax vs Random")
-    print(run_pairing(lambda p, seed=None: MinimaxAgent(p, depth=4, seed=seed), RandomAgent, games=30, seed=args.seed + 2))
+    result3 = run_pairing(lambda p, seed=None: MinimaxAgent(p, depth=4, seed=seed), RandomAgent, games=30, seed=args.seed + 2)
+    print({
+        "wins_A": result3["wins_A"],
+        "wins_B": result3["wins_B"],
+        "draws": result3["draws"],
+        "avg_time_A_per_move": result3["avg_time_A_per_move"],
+        "avg_time_B_per_move": result3["avg_time_B_per_move"],
+    })
